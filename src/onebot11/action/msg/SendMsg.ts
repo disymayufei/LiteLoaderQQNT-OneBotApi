@@ -35,6 +35,8 @@ import {NTQQMsgApi} from "../../../ntqqapi/api/msg";
 import {log} from "../../../common/utils/log";
 import {sleep} from "../../../common/utils/helper";
 import {uri2local} from "../../../common/utils";
+import e from "express";
+import {NTQQGroupApi} from "../../../ntqqapi/api";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -268,27 +270,48 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
             peer.peerUid = group.groupCode
         }
 
-        const genFriendPeer = () => {
+        const genFriendPeer = async () => {
             const friend = friends.find(f => f.uin == payload.user_id.toString())
             if (friend) {
                 // peer.name = friend.nickName
                 peer.peerUid = friend.uid
             } else {
                 peer.chatType = ChatType.temp
-                const tempUserUid = getUidByUin(payload.user_id.toString())
+                let tempUserUid = getUidByUin(payload.user_id.toString())
                 if (!tempUserUid) {
-                    throw (`找不到私聊对象${payload.user_id}`)
+                    if (payload?.group_id) {
+                        let members = await NTQQGroupApi.getGroupMembers(payload.group_id)
+                        for (let member of members) {
+                            if (member.uin === payload.user_id) {
+                                let uidPair = {}
+                                uidPair[member.uin] = member.uid
+                                dbUtil.setReceivedTempUinMap(uidPair)
+                                tempUserUid = member.uid
+                            }
+                        }
+
+                        if (!tempUserUid) {
+                            throw (`在群${payload.group_id}内找不到私聊对象${payload.user_id}`)
+                        }
+                    }
+                    else {
+                        throw (`找不到私聊对象${payload.user_id}`)
+                    }
                 }
                 // peer.name = tempUser.nickName
                 isTempMsg = true;
                 peer.peerUid = tempUserUid;
+
+                if (payload?.group_id) {
+                    await NTQQMsgApi.prepareTempMessage(peer, payload.group_id)
+                }
             }
         }
         if (payload?.group_id && payload.message_type === "group") {
             await genGroupPeer()
 
         } else if (payload?.user_id) {
-            genFriendPeer()
+            await genFriendPeer()
         } else if (payload.group_id) {
             await genGroupPeer()
         } else {

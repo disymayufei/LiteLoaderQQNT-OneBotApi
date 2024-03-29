@@ -62,6 +62,7 @@ let mainWindow: BrowserWindow | null = null;
 // 加载插件时触发
 function onLoad() {
     log("llonebot main onLoad");
+
     ipcMain.handle(CHANNEL_CHECK_VERSION, async (event, arg) => {
         return checkNewVersion();
     });

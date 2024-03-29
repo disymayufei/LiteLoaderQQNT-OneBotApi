@@ -44,6 +44,7 @@ export enum NTQQApiMethod {
     MEDIA_FILE_PATH = "nodeIKernelMsgService/getRichMediaFilePathForGuild",
     RECALL_MSG = "nodeIKernelMsgService/recallMsg",
     SEND_MSG = "nodeIKernelMsgService/sendMsg",
+    PREPARE_TEMP_CHAT = "nodeIKernelMsgService/prepareTempChat",
     DOWNLOAD_MEDIA = "nodeIKernelMsgService/downloadRichMedia",
     FORWARD_MSG = "nodeIKernelMsgService/forwardMsgWithComment",
     MULTI_FORWARD_MSG = "nodeIKernelMsgService/multiForwardMsgWithComment", // 合并转发

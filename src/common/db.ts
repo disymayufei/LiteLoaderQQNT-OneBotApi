@@ -36,7 +36,7 @@ class DBUtil {
                 // }
 
                 try {
-                    if (!selfInfo.uin) {
+                    if (!selfInfo || !selfInfo.uin) {
                         setTimeout(initDB, 300);
                         return
                     }
