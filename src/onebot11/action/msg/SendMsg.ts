@@ -35,7 +35,6 @@ import {NTQQMsgApi} from "../../../ntqqapi/api/msg";
 import {log} from "../../../common/utils/log";
 import {sleep} from "../../../common/utils/helper";
 import {uri2local} from "../../../common/utils";
-import e from "express";
 import {NTQQGroupApi} from "../../../ntqqapi/api";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
