@@ -355,8 +355,9 @@ function onLoad() {
 
         registerReceiveHook<FriendRequestNotify>(ReceiveCmdS.FRIEND_REQUEST, async (payload) => {
             for (const req of payload.data.buddyReqs) {
-                if (req.isUnread && !friendRequests[req.sourceId] && (parseInt(req.reqTime) > startTime / 1000)) {
-                    friendRequests[req.sourceId] = req;
+                let flag = req.friendUid + req.reqTime;
+                if (req.isUnread && (parseInt(req.reqTime) > startTime / 1000)) {
+                    friendRequests[flag] = req;
                     log("有新的好友请求", req);
                     let friendRequestEvent = new OB11FriendRequestEvent();
                     try {
@@ -365,7 +366,7 @@ function onLoad() {
                     } catch (e) {
                         log("获取加好友者QQ号失败", e);
                     }
-                    friendRequestEvent.flag = req.sourceId.toString();
+                    friendRequestEvent.flag = flag;
                     friendRequestEvent.comment = req.extWords;
                     postOB11Event(friendRequestEvent);
                 }
