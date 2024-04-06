@@ -3,11 +3,31 @@ import { CheckVersion } from '../common/types';
 import {SettingButton, SettingItem, SettingList, SettingSwitch, SettingSelect} from './components';
 // @ts-ignore
 import StyleRaw from './style.css?raw';
+import {iconSvg} from "./icon";
 
 // 打开设置界面时触发
 
+function aprilFoolsEgg(node: Element){
+    let today = new Date()
+    if(today.getMonth() === 3 && today.getDate() === 1){
+        console.log("超时空猫猫!!!")
+        node.querySelector(".name").innerHTML = "ChronoCat";
+    }
+}
+
+function initSideBar(){
+    document.querySelectorAll(".nav-item.liteloader").forEach((node) => {
+        if (node.textContent.startsWith("LLOneBot")) {
+            aprilFoolsEgg(node)
+            let iconEle = node.querySelector(".q-icon");
+            iconEle.innerHTML = iconSvg;
+        }
+    })
+}
+
 async function onSettingWindowCreated(view: Element) {
     window.llonebot.log("setting window created");
+    initSideBar()
     const isEmpty = (value: any) => value === undefined || value === null || value === '';
     let config = await window.llonebot.getConfig();
     let ob11Config = {...config.ob11};
@@ -182,13 +202,16 @@ async function onSettingWindowCreated(view: Element) {
     const showError = async () => {
         await (new Promise((res) => setTimeout(() => res(true), 1000)));
 
-        const errDom = doc.querySelector('#llonebot-error');
+        const errDom = document.querySelector('#llonebot-error') || doc.querySelector('#llonebot-error');
         const errCodeDom = errDom.querySelector('code');
         const errMsg = await window.llonebot.getError();
 
-        if (!errMsg) return;
-
-        errDom.classList.add('show');
+        if (!errMsg){
+            errDom.classList.remove('show');
+        }
+        else {
+            errDom.classList.add('show');
+        }
         errCodeDom.innerHTML = errMsg;
     }
     showError().then();

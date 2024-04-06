@@ -22,8 +22,8 @@ export enum NTQQApiClass {
 
 export enum NTQQApiMethod {
     RECENT_CONTACT = "nodeIKernelRecentContactService/fetchAndSubscribeABatchOfRecentContact",
-    ADD_ACTIVE_CHAT = "nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat",  // 激活群助手内的聊天窗口，这样才能收到消息
-    HISTORY_MSG_998 = "nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat",
+    ACTIVE_CHAT_PREVIEW = "nodeIKernelMsgService/getAioFirstViewLatestMsgsAndAddActiveChat",  // 激活聊天窗口，有时候必须这样才能收到消息, 并返回最新预览消息
+    ACTIVE_CHAT_HISTORY = "nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat", // 激活聊天窗口，有时候必须这样才能收到消息, 并返回历史消息
     HISTORY_MSG = "nodeIKernelMsgService/getMsgsIncludeSelf",
     GET_MULTI_MSG = "nodeIKernelMsgService/getMultiMsg",
 
@@ -78,7 +78,9 @@ export enum NTQQApiMethod {
 
     SET_QQ_AVATAR = 'nodeIKernelProfileService/setHeader',
     GET_SKEY = "nodeIKernelTipOffService/getPskey",
-    UPDATE_SKEY = "updatePskey"
+    UPDATE_SKEY = "updatePskey",
+
+    FETCH_UNITED_COMMEND_CONFIG = "nodeIKernelUnitedConfigService/fetchUnitedCommendConfig"  // 发包需要调用的
 }
 
 enum NTQQApiChannel {
@@ -192,6 +194,17 @@ export class NTQQApi {
             methodName: cmdName,
             args: [
                 ...args,
+            ]
+        })
+    }
+
+    static async fetchUnitedCommendConfig() {
+        return await callNTQQApi<GeneralCallResult>({
+            methodName: NTQQApiMethod.FETCH_UNITED_COMMEND_CONFIG,
+            args:[
+                {
+                    groups: ['100243']
+                }
             ]
         })
     }

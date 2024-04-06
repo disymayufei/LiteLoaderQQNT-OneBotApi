@@ -47,7 +47,7 @@ import {dbUtil} from "../common/db";
 import {setConfig} from "./setConfig";
 import {NTQQUserApi} from "../ntqqapi/api/user";
 import {NTQQGroupApi} from "../ntqqapi/api/group";
-import {registerPokeHandler} from "../ntqqapi/external/ccpoke";
+import {crychic} from "../ntqqapi/external/crychic";
 import {OB11FriendPokeEvent, OB11GroupPokeEvent} from "../onebot11/event/notice/OB11PokeEvent";
 import {checkNewVersion, upgradeLLOneBot} from "../common/utils/upgrade";
 import {log} from "../common/utils/log";
@@ -109,6 +109,7 @@ function onLoad() {
         let error = `${otherError}\n${httpServerError}\n${wsServerError}\n${ffmpegError}`
         error = error.replace("\n\n", "\n")
         error = error.trim();
+        log("查询llonebot错误信息", error);
         return error;
     })
     ipcMain.handle(CHANNEL_GET_CONFIG, async (event, arg) => {
@@ -117,7 +118,9 @@ function onLoad() {
     })
     ipcMain.on(CHANNEL_SET_CONFIG, (event, ask: boolean, config: Config) => {
         if (!ask) {
-            setConfig(config).then();
+            setConfig(config).then().catch(e => {
+                log("保存设置失败", e.stack)
+            });
             return
         }
         dialog.showMessageBox(mainWindow, {
@@ -129,7 +132,9 @@ function onLoad() {
             detail: 'LLOneBot配置已更改，是否保存？'
         }).then(result => {
             if (result.response === 0) {
-                setConfig(config).then();
+                setConfig(config).then().catch(e => {
+                    log("保存设置失败", e.stack)
+                });
             } else {
             }
         }).catch(err => {
@@ -179,7 +184,8 @@ function onLoad() {
 
     async function startReceiveHook() {
         if (getConfigUtil().getConfig().enablePoke) {
-            registerPokeHandler((id, isGroup) => {
+            crychic.loadNode()
+            crychic.registerPokeHandler((id, isGroup) => {
                 log(`收到戳一戳消息了！是否群聊：${isGroup}，id:${id}`)
                 let pokeEvent: OB11FriendPokeEvent | OB11GroupPokeEvent;
                 if (isGroup) {

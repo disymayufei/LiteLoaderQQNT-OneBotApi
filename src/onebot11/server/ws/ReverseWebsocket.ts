@@ -78,6 +78,7 @@ export class ReverseWebsocket {
     private connect() {
         const {token, heartInterval} = getConfigUtil().getConfig()
         this.websocket = new WebSocketClass(this.url, {
+            maxPayload: 1024 * 1024 * 1024,
             handshakeTimeout: 2000,
             perMessageDeflate: false,
             headers: {
@@ -128,8 +129,13 @@ class OB11ReverseWebsockets {
 
     stop() {
         for (let rws of rwsList) {
-            rws.stop();
+            try {
+                rws.stop();
+            }catch (e) {
+                log("反向ws关闭:", e.stack)
+            }
         }
+        rwsList.length = 0;
     }
 
     restart() {
