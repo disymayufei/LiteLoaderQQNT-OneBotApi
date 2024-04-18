@@ -1,20 +1,16 @@
 import {
     AtType,
     ChatType,
-    ElementType, Friend,
-    Group, PicSubType,
+    ElementType,
+    Friend,
+    Group,
+    GroupMemberRole,
+    PicSubType,
     RawMessage,
     SendArkElement,
     SendMessageElement
 } from "../../../ntqqapi/types";
-import {
-    friends,
-    getFriend,
-    getGroup,
-    getGroupMember,
-    getUidByUin,
-    selfInfo,
-} from "../../../common/data";
+import {friends, getFriend, getGroup, getGroupMember, getUidByUin, selfInfo,} from "../../../common/data";
 import {
     OB11MessageCustomMusic,
     OB11MessageData,
@@ -23,7 +19,7 @@ import {
     OB11MessageNode,
     OB11PostSendMsg
 } from '../../types';
-import {Peer} from "../../../ntqqapi/api/msg";
+import {NTQQMsgApi, Peer} from "../../../ntqqapi/api/msg";
 import {SendMsgElementConstructor} from "../../../ntqqapi/constructor";
 import BaseAction from "../BaseAction";
 import {ActionName, BaseCheckResult} from "../types";
@@ -31,12 +27,12 @@ import * as fs from "node:fs";
 import {decodeCQCode} from "../../cqcode";
 import {dbUtil} from "../../../common/db";
 import {ALLOW_SEND_TEMP_MSG} from "../../../common/config";
-import {NTQQMsgApi} from "../../../ntqqapi/api/msg";
 import {log} from "../../../common/utils/log";
 import {sleep} from "../../../common/utils/helper";
 import {uri2local} from "../../../common/utils";
 import {NTQQGroupApi} from "../../../ntqqapi/api";
 import {crychic} from "../../../ntqqapi/external/crychic";
+import {NTQQGroupApi} from "../../../ntqqapi/api";
 
 function checkSendMessage(sendMsgList: OB11MessageData[]) {
     function checkUri(uri: string): boolean {
@@ -79,15 +75,15 @@ export interface ReturnDataType {
 
 export function convertMessage2List(message: OB11MessageMixType, autoEscape = false) {
     if (typeof message === "string") {
-        if (!autoEscape) {
-            message = decodeCQCode(message.toString())
-        } else {
+        if (autoEscape === true) {
             message = [{
                 type: OB11MessageDataType.text,
                 data: {
                     text: message
                 }
             }]
+        } else {
+            message = decodeCQCode(message.toString())
         }
     } else if (!Array.isArray(message)) {
         message = [message]
@@ -118,7 +114,21 @@ export async function createSendElements(messageData: OB11MessageData[], target:
                 if (atQQ) {
                     atQQ = atQQ.toString()
                     if (atQQ === "all") {
-                        sendElements.push(SendMsgElementConstructor.at(atQQ, atQQ, AtType.atAll, "全体成员"))
+                        // todo：查询剩余的at全体次数
+                        const groupCode = (target as Group)?.groupCode;
+                        let remainAtAllCount = 1
+                        let isAdmin: boolean = true;
+                        if (groupCode) {
+                            try {
+                                remainAtAllCount = (await NTQQGroupApi.getGroupAtAllRemainCount(groupCode)).atInfo.RemainAtAllCountForUin
+                                log(`群${groupCode}剩余at全体次数`, remainAtAllCount);
+                                const self = await getGroupMember((target as Group)?.groupCode, selfInfo.uin);
+                                isAdmin = self.role === GroupMemberRole.admin || self.role === GroupMemberRole.owner;
+                            } catch (e) {}
+                        }
+                        if(isAdmin && remainAtAllCount > 0) {
+                            sendElements.push(SendMsgElementConstructor.at(atQQ, atQQ, AtType.atAll, "全体成员"))
+                        }
                     } else {
                         // const atMember = group?.members.find(m => m.uin == atQQ)
                         const atMember = await getGroupMember((target as Group)?.groupCode, atQQ);
@@ -215,6 +225,14 @@ export async function createSendElements(messageData: OB11MessageData[], target:
                 }
             }
                 break;
+            case OB11MessageDataType.dice:{
+                const resultId = sendMsg.data?.result
+                sendElements.push(SendMsgElementConstructor.dice(resultId));
+            }break;
+            case OB11MessageDataType.RPS:{
+                const resultId = sendMsg.data?.result
+                sendElements.push(SendMsgElementConstructor.rps(resultId));
+            }break;
         }
 
     }
@@ -331,7 +349,7 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         } else {
             throw ("发送消息参数错误, 请指定group_id或user_id")
         }
-        const messages = convertMessage2List(payload.message, !!payload.auto_escape);
+        const messages = convertMessage2List(payload.message, payload.auto_escape === true || payload.auto_escape === 'true');
         if (this.getSpecialMsgNum(payload, OB11MessageDataType.node)) {
             try {
                 const returnMsg = await this.handleForwardNode(peer, messages as OB11MessageNode[], group)
@@ -510,6 +528,9 @@ export class SendMsg extends BaseAction<OB11PostSendMsg, ReturnDataType> {
         // nodeIds.push(nodeMsg.msgId)
         // await sleep(500);
         // 开发转发
+        if (nodeMsgIds.length === 0) {
+            throw Error("转发消息失败，节点为空")
+        }
         try {
             log("开发转发", nodeMsgIds)
             return await NTQQMsgApi.multiForwardMsg(srcPeer, destPeer, nodeMsgIds)

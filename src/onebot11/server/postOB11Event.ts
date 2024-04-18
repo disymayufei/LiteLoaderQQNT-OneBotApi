@@ -1,5 +1,5 @@
 import {OB11Message, OB11MessageAt, OB11MessageData} from "../types";
-import {getGroup, selfInfo} from "../../common/data";
+import {getFriend, getGroup, getUidByUin, selfInfo} from "../../common/data";
 import {OB11BaseMetaEvent} from "../event/meta/OB11BaseMetaEvent";
 import {OB11BaseNoticeEvent} from "../event/notice/OB11BaseNoticeEvent";
 import {WebSocket as WebSocketClass} from "ws";
@@ -63,14 +63,13 @@ export function unregisterWsEventSender(ws: WebSocketClass) {
 
 export function postWsEvent(event: PostEventType) {
     for (const ws of eventWSList) {
-        log(ws)
         new Promise(() => {
             wsReply(ws, event);
         }).then()
     }
 }
 
-export function postOB11Event(msg: PostEventType, reportSelf = false) {
+export function postOB11Event(msg: PostEventType, reportSelf = false, postWs = true) {
     const config = getConfigUtil().getConfig();
     // 判断msg是否是event
     if (!config.reportSelfMessage && !reportSelf) {
@@ -116,6 +115,7 @@ export function postOB11Event(msg: PostEventType, reportSelf = false) {
                         peerUid: msg.user_id.toString()
                     }
                     if (msg.message_type == "private") {
+                        peer.peerUid = getUidByUin(msg.user_id.toString())
                         if (msg.sub_type === "group") {
                             peer.chatType = ChatType.temp
                         }
@@ -140,6 +140,7 @@ export function postOB11Event(msg: PostEventType, reportSelf = false) {
                         }
                         replyMessage = replyMessage.concat(convertMessage2List(reply, resJson.auto_escape))
                         const {sendElements, deleteAfterSentFiles} = await createSendElements(replyMessage, group)
+                        log(`发送消息给`, peer, sendElements)
                         sendMsg(peer, sendElements, deleteAfterSentFiles, false).then()
                     } else if (resJson.delete) {
                         NTQQMsgApi.recallMsg(peer, [rawMessage.msgId]).then()
@@ -171,5 +172,7 @@ export function postOB11Event(msg: PostEventType, reportSelf = false) {
             });
         }
     }
-    postWsEvent(msg);
+    if (postWs){
+        postWsEvent(msg);
+    }
 }

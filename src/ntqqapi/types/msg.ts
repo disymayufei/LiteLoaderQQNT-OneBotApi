@@ -212,9 +212,28 @@ export interface GrayTipElement {
     }
 }
 
+export enum FaceType {
+    normal=1, // 小黄脸
+    normal2=2, // 新小黄脸, 从faceIndex 222开始？
+    dice=3  // 骰子
+}
+
+export enum FaceIndex {
+    dice = 358,
+    RPS = 359  // 石头剪刀布
+}
+
 export interface FaceElement {
     faceIndex: number,
-    faceType: 1
+    faceType: FaceType,
+    faceText?: string,
+    packId?: string,
+    stickerId?: string,
+    sourceType?: number,
+    stickerType?: number,
+    resultId?: string,
+    surpriseId?: string,
+    randomType?: number
 }
 
 export interface MarketFaceElement {

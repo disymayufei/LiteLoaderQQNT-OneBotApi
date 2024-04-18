@@ -40,6 +40,7 @@ import GoCQHTTPDownloadFile from "./go-cqhttp/DownloadFile";
 import GoCQHTTPGetGroupMsgHistory from "./go-cqhttp/GetGroupMsgHistory";
 import GetFile from "./file/GetFile";
 import {GoCQHTTGetForwardMsgAction} from "./go-cqhttp/GetForwardMsg";
+import {GetCookies} from "./user/GetCookie";
 
 export const actionHandlers = [
     new GetFile(),
@@ -72,7 +73,7 @@ export const actionHandlers = [
     new GetImage(),
     new GetRecord(),
     new CleanCache(),
-
+    new GetCookies(),
     //以下为go-cqhttp api
     new GoCQHTTPSendForwardMsg(),
     new GoCQHTTPSendGroupForwardMsg(),
@@ -91,6 +92,8 @@ function initActionMap() {
     const actionMap = new Map<string, BaseAction<any, any>>();
     for (const action of actionHandlers) {
         actionMap.set(action.actionName, action);
+        actionMap.set(action.actionName + '_async', action);
+        actionMap.set(action.actionName + '_rate_limited', action);
     }
 
     return actionMap

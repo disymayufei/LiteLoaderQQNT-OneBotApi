@@ -26,6 +26,7 @@ export enum NTQQApiMethod {
     ACTIVE_CHAT_HISTORY = "nodeIKernelMsgService/getMsgsIncludeSelfAndAddActiveChat", // 激活聊天窗口，有时候必须这样才能收到消息, 并返回历史消息
     HISTORY_MSG = "nodeIKernelMsgService/getMsgsIncludeSelf",
     GET_MULTI_MSG = "nodeIKernelMsgService/getMultiMsg",
+    DELETE_ACTIVE_CHAT = "nodeIKernelMsgService/deleteActiveChatByUid",
 
     LIKE_FRIEND = "nodeIKernelProfileLikeService/setBuddyProfileLike",
     SELF_INFO = "fetchAuthData",
@@ -51,6 +52,7 @@ export enum NTQQApiMethod {
     GET_GROUP_NOTICE = "nodeIKernelGroupService/getSingleScreenNotifies",
     HANDLE_GROUP_REQUEST = "nodeIKernelGroupService/operateSysNotify",
     QUIT_GROUP = "nodeIKernelGroupService/quitGroup",
+    GROUP_AT_ALL_REMAIN_COUNT = "nodeIKernelGroupService/getGroupRemainAtTimes",
     // READ_FRIEND_REQUEST = "nodeIKernelBuddyListener/onDoubtBuddyReqUnreadNumChange"
     HANDLE_FRIEND_REQUEST = "nodeIKernelBuddyService/approvalFriendRequest",
     KICK_MEMBER = "nodeIKernelGroupService/kickMember",

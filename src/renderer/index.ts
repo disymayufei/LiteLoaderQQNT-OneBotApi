@@ -68,6 +68,9 @@ async function onSettingWindowCreated(view: Element) {
                 `<div class="q-input"><input class="q-input__inner" data-config-key="ob11.httpPort" type="number" min="1" max="65534" value="${config.ob11.httpPort}" placeholder="${config.ob11.httpPort}" /></div>`,
                 'config-ob11-httpPort', config.ob11.enableHttp
             ),
+            SettingItem('启用 HTTP 心跳', null,
+              SettingSwitch('ob11.enableHttpHeart', config.ob11.enableHttpHeart, {'control-display-id': 'config-ob11-enableHttpHeart'}),
+            ),
             SettingItem('启用 HTTP 事件上报', null,
                 SettingSwitch('ob11.enableHttpPost', config.ob11.enableHttpPost, {'control-display-id': 'config-ob11-httpHosts'}),
             ),
@@ -133,8 +136,8 @@ async function onSettingWindowCreated(view: Element) {
         ]),
         SettingList([
             SettingItem(
-                '接收戳一戳消息, 暂时只支持Windows版的LLOneBot',
-                `重启QQ后生效，如果导致QQ崩溃请勿开启此项`,
+                '戳一戳消息, 暂时只支持Windows版的LLOneBot',
+                `重启QQ后生效，如果导致QQ崩溃请勿开启此项, 群戳一戳只能收到群号`,
                 SettingSwitch('enablePoke', config.enablePoke),
             ),
             SettingItem(
